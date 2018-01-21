@@ -28,24 +28,26 @@
             {{ total_comments }} comment{{ total_comments|pluralize }}
         </h2>
     {% endwith %}
-    {% for comment in comments %}
-        <div class="comment">
-            <p class="info">
-                Comment {{ forloop.counter }} by {{ comment.name }}
-                {{ comment.created }}
-            </p>
-            {{ comment.body|markdown }}
-        </div>
-    {% empty %}
-        <p>There are no comments yet.</p>
-    {% endfor %}
+    <div class="comments">
+        {% for comment in comments %}
+            <div class="comment">
+                <p class="info">
+                    Comment {{ forloop.counter }} by {{ comment.name }}
+                    {{ comment.created }}
+                </p>
+                {{ comment.body|markdown }}
+            </div>
+        {% empty %}
+            <p>There are no comments yet.</p>
+        {% endfor %}
+    </div>
     {% if new_comment %}
         <h2>Your comment has been added.</h2>
     {% else %}
         <h2>Add a new comment</h2>
-        <form action="." method="post">
-            {{ comment_form.as_p }}
+        <form method="POST" id="comment-form">
             {% csrf_token %}
+            {{ comment_form.as_p }}
             <p><input type="submit" value="Add comment"></p>
         </form>
     {% endif %}

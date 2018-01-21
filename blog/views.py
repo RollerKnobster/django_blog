@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, HttpResponse
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count
@@ -7,6 +7,7 @@ from haystack.query import SearchQuerySet
 from taggit.models import Tag
 from .models import Post
 from .forms import EmailPostForm, CommentForm, SearchForm
+import json
 
 
 # class PostListView(ListView):
@@ -41,7 +42,6 @@ def post_detail(request, year, month, day, post):
     post = get_object_or_404(Post, slug=post, status='published',
                              publish__year=year, publish__month=month,
                              publish__day=day)
-    comments = post.comments.filter(active=True)
 
     if request.method == 'POST':
         comment_form = CommentForm(data=request.POST)
@@ -49,8 +49,18 @@ def post_detail(request, year, month, day, post):
             new_comment = comment_form.save(commit=False)
             new_comment.post = post
             new_comment.save()
+            response_data = {
+                'name': new_comment.name,
+                'created': new_comment.created.strftime("%d/%m/%y"),
+                'body': new_comment.body
+            }
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type='application/json'
+            )
     else:
         comment_form = CommentForm()
+    comments = post.comments.filter(active=True)
 
     post_tags_ids = post.tags.values_list('id', flat=True)
     similar_posts = Post.published.filter(tags__in=post_tags_ids)\
